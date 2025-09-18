@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   getAllConversations, 
   getUserById,
-  getLastMessageTimestamp,
-  Conversation 
+  getLastMessageTimestamp
 } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { Search, Filter, MoreVertical } from "lucide-react";
@@ -95,7 +94,7 @@ export function ChatHeads({
               key={key}
               variant={filterStatus === key ? "default" : "ghost"}
               size="sm"
-              onClick={() => setFilterStatus(key as any)}
+              onClick={() => setFilterStatus(key as "all" | "active" | "closed")}
               className="flex-1"
             >
               {label}

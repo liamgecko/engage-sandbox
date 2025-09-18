@@ -20,7 +20,7 @@ import {
   getConversationById, 
   getUserById 
 } from "@/lib/data";
-import { MoreVertical, MessageSquarePlus, UserPlus, StickyNote, CheckSquare, Star, Tags, Tag, Plus } from 'lucide-react';
+import { MoreVertical, MessageSquarePlus, UserPlus, StickyNote, Star, Tags, Plus } from 'lucide-react';
 
 interface ContactDetailsProps {
   conversationId?: string;
