@@ -66,7 +66,6 @@ export function MultiSelectCombobox({
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
-            size="sm"
             role="combobox"
             aria-expanded={open}
             className="justify-between !px-1.5 hover:bg-slate-50"
@@ -81,7 +80,7 @@ export function MultiSelectCombobox({
                       key={option.value}
                       className="flex items-center gap-1 text-xs whitespace-nowrap"
                     >
-                        <Avatar className="h-6 w-6 ring-0.5 ring-white">
+                        <Avatar className="size-7 ring-0.5 ring-white">
                           {option.avatar && (option.avatar.startsWith('http') || option.avatar.startsWith('/')) ? (
                             <AvatarImage 
                               src={option.avatar} 
