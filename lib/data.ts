@@ -741,8 +741,8 @@ export function updateUser(userId: string, updates: Partial<User>): boolean {
 }
 
 // Simple state management for important conversations
-let importantConversations = new Set<string>();
-let listeners: Set<() => void> = new Set();
+const importantConversations = new Set<string>();
+const listeners: Set<() => void> = new Set();
 
 export function toggleConversationImportant(conversationId: string): boolean {
   if (importantConversations.has(conversationId)) {

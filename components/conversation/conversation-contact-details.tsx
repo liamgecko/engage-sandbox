@@ -153,7 +153,7 @@ export function ContactDetails({
           });
         }
         
-        const timer = setTimeout(() => {
+        setTimeout(() => {
           setIsAnimating(false);
           setAnimationType(null);
         }, 600); // Animation duration
