@@ -10,6 +10,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { MoreVertical, CheckCheck, X } from "lucide-react";
+import Image from "next/image";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getUserById, updateUser } from "@/lib/data";
 
 // Editable field component moved outside to prevent recreation
@@ -103,6 +105,8 @@ export function ContactDetails({
   const [editValue, setEditValue] = useState<string>("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [contactData, setContactData] = useState(getUserById(contactId));
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationType, setAnimationType] = useState<'verified' | 'unverified' | null>(null);
   
   // Re-fetch contact data when refreshKey changes
   useEffect(() => {
@@ -128,6 +132,34 @@ export function ContactDetails({
     
     if (success) {
       console.log(`Successfully updated ${editingField}: ${editValue}`);
+      
+      // Trigger animation only when email or phone is updated (verification fields)
+      if (editingField === 'email' || editingField === 'phone') {
+        // Determine animation type based on NEW verification status after update
+        // Contact is verified if they have either email OR phone (non-empty)
+        const hasEmail = editingField === 'email' ? Boolean(editValue && editValue.trim() !== '') : Boolean(contactData.email && contactData.email.trim() !== '');
+        const hasPhone = editingField === 'phone' ? Boolean(editValue && editValue.trim() !== '') : Boolean(contactData.phone && contactData.phone.trim() !== '');
+        const newVerifiedStatus = hasEmail || hasPhone;
+        const newAnimationType = newVerifiedStatus ? 'verified' : 'unverified';
+        setAnimationType(newAnimationType);
+        setIsAnimating(true);
+        
+        // Play verification sound when contact becomes verified
+        if (newVerifiedStatus) {
+          const audio = new Audio('/verified.mp3');
+          audio.volume = 0.3; // Reduce volume to 30%
+          audio.play().catch(error => {
+            console.log('Could not play verification sound:', error);
+          });
+        }
+        
+        const timer = setTimeout(() => {
+          setIsAnimating(false);
+          setAnimationType(null);
+        }, 600); // Animation duration
+        // Don't clear timeout on cleanup since we want the animation to complete
+      }
+      
       // Trigger a re-render to show updated data
       setRefreshKey(prev => prev + 1);
     } else {
@@ -225,22 +257,41 @@ export function ContactDetails({
       {/* Contact Info Section */}
       <div className="px-4 py-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <Avatar className="h-10 w-10">
-              <AvatarFallback className={`${contactData?.avatarBg || "bg-purple-100"} ${contactData?.avatarText || "text-purple-800"} text-sm font-medium`}>
-                {displayInitials}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="h-10 w-10">
+                <AvatarFallback className={`${contactData?.avatarBg || "bg-purple-100"} ${contactData?.avatarText || "text-purple-800"} text-sm font-medium`}>
+                  {displayInitials}
+                </AvatarFallback>
+              </Avatar>
+              {/* Verification Status Icon */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="absolute -bottom-1 -right-1 size-4.5 cursor-help">
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={contactData?.verified ? "/verified.svg" : "/unverified.svg"}
+                        alt={contactData?.verified ? "Verified" : "Unverified"}
+                        width={18}
+                        height={18}
+                        className={`w-full h-full drop-shadow-sm transition-all duration-300 ease-in-out ${
+                          isAnimating ? 'verification-badge-change' : ''
+                        }`}
+                      />
+                      {/* Animated ring effect only when going to verified state (not when going to unverified) */}
+                      {isAnimating && animationType === 'verified' && (
+                        <div className="absolute inset-0 rounded-full border-2 verification-ring-pulse border-emerald-400" />
+                      )}
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>{contactData?.verified ? "Verified contact" : "Unverified contact"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-md font-medium text-foreground">{displayName}</h3>
-                {contactData && (
-                  <Badge 
-                    variant={contactData.verified ? "default" : "secondary"}
-                    className="text-xs"
-                  >
-                    {contactData.verified ? "Verified" : "Unverified"}
-                  </Badge>
-                )}
               </div>
             </div>
           </div>
