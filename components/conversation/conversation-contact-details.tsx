@@ -266,7 +266,7 @@ export function ContactDetails({
               {/* Verification Status Icon */}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="absolute -bottom-1 -right-1 size-4.5 cursor-help">
+                  <div className="absolute -bottom-0.5 -right-1 size-4.5 cursor-help">
                     <div className="relative w-full h-full">
                       <Image
                         src={contactData?.verified ? "/verified.svg" : "/unverified.svg"}
