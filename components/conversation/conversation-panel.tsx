@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useLayoutEffect } from "react";
+import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MultiSelectCombobox } from "@/components/ui/multi-select-combobox";
@@ -39,7 +39,24 @@ export function ConversationPanel({
 }: ConversationPanelProps) {
   const [assignedAgents, setAssignedAgents] = useState<string[]>([]);
   const [isReplyBoxMaximized, setIsReplyBoxMaximized] = useState(false);
+  const [showBotPulse, setShowBotPulse] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Start pulse animation after a short delay, then stop after completion
+  useEffect(() => {
+    const startTimer = setTimeout(() => {
+      setShowBotPulse(true);
+    }, 500); // 500ms delay to let avatar load
+    
+    const stopTimer = setTimeout(() => {
+      setShowBotPulse(false);
+    }, 4500); // 500ms delay + 4s animation (2s * 2) = 4.5s total
+    
+    return () => {
+      clearTimeout(startTimer);
+      clearTimeout(stopTimer);
+    };
+  }, []);
 
   // Get conversation and user data
   const conversation = getConversationById(conversationId);
@@ -140,12 +157,13 @@ export function ConversationPanel({
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
                   <div className="relative group cursor-pointer">
-                    <Avatar className="size-6">
+                    <Avatar className={`size-6 ${showBotPulse ? 'bot-avatar-pulse' : ''}`}>
                       <AvatarImage 
                         src="https://images.unsplash.com/photo-1683029096295-7680306aa37d?q=80&w=3132&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" 
                         alt="Bot Avatar" 
                         width={24}
                         height={24}
+                        className="object-cover object-center"
                       />
                     </Avatar>
                     <div className="absolute inset-0 bg-slate-950/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
