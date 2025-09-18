@@ -66,9 +66,10 @@ export function MultiSelectCombobox({
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
+            size="sm"
             role="combobox"
             aria-expanded={open}
-            className="justify-between !px-1.5 hover:bg-slate-50"
+            className="justify-between !px-1.5 hover:bg-transparent"
           >
             <div className="flex items-center gap-1">
               {selected.length === 0 ? (

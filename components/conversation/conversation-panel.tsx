@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ReplyBox } from "@/components/ui/reply-box";
 import { ChatBubble } from "@/components/ui/chat-bubble";
 import { SystemMessage } from "@/components/ui/system-message";
-import { CircleCheckBig, PanelRightClose, PanelRightOpen, MoreVertical } from "lucide-react";
+import { CircleCheckBig, PanelRightClose, PanelRightOpen, MoreVertical, ShieldAlert, Flag } from "lucide-react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { 
@@ -17,6 +17,9 @@ import {
   getUserById,
   addSystemMessage,
   createAgentAssignmentMessage,
+  toggleConversationImportant,
+  isConversationImportant,
+  subscribeToImportantChanges,
   Message
 } from "@/lib/data";
 import { 
@@ -40,6 +43,7 @@ export function ConversationPanel({
   const [assignedAgents, setAssignedAgents] = useState<string[]>([]);
   const [isReplyBoxMaximized, setIsReplyBoxMaximized] = useState(false);
   const [showBotPulse, setShowBotPulse] = useState(false);
+  const [isImportant, setIsImportant] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Start pulse animation after a short delay, then stop after completion
@@ -50,7 +54,7 @@ export function ConversationPanel({
     
     const stopTimer = setTimeout(() => {
       setShowBotPulse(false);
-    }, 4500); // 500ms delay + 4s animation (2s * 2) = 4.5s total
+    }, 6500); // 500ms delay + 6s animation (2s * 3) = 6.5s total
     
     return () => {
       clearTimeout(startTimer);
@@ -67,8 +71,17 @@ export function ConversationPanel({
   React.useEffect(() => {
     if (conversation) {
       setAssignedAgents(conversation.assignedAgents || []);
+      setIsImportant(isConversationImportant(conversationId));
     }
   }, [conversationId, conversation]);
+
+  // Subscribe to important changes
+  React.useEffect(() => {
+    const unsubscribe = subscribeToImportantChanges(() => {
+      setIsImportant(isConversationImportant(conversationId));
+    });
+    return unsubscribe;
+  }, [conversationId]);
 
   // Auto-scroll to bottom when messages change
   useLayoutEffect(() => {
@@ -144,6 +157,13 @@ export function ConversationPanel({
     setAssignedAgents(newAssignments);
   };
 
+  const handleFlagImportant = () => {
+    if (conversationId) {
+      toggleConversationImportant(conversationId);
+    }
+  };
+
+
   return (
     <div className="h-full bg-white flex flex-col min-h-0">
       {/* Header */}
@@ -199,39 +219,72 @@ export function ConversationPanel({
             maxDisplay={1}
           />
           
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="iconSm"
-                onClick={onClose}
-              >
-                <CircleCheckBig className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Close conversation</p>
-            </TooltipContent>
-          </Tooltip>
-          
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="iconSm"
-                onClick={onToggleSidebar}
-              >
-                {isSidebarCollapsed ? (
-                  <PanelRightOpen className="h-4 w-4" />
-                ) : (
-                  <PanelRightClose className="h-4 w-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>{isSidebarCollapsed ? "Open contact details" : "Collapse contact details"}</p>
-            </TooltipContent>
-          </Tooltip>
+          <div className="flex items-center gap-[1px]">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="iconXs"
+                  onClick={onClose}
+                >
+                  <CircleCheckBig className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Close conversation</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="iconXs"
+                  onClick={handleFlagImportant}
+                  className={isImportant ? "text-orange-600 bg-orange-50 hover:text-orange-500 hover:bg-orange-50" : ""}
+                >
+                  <Flag className={`h-4 w-4 ${isImportant ? "fill-current" : ""}`} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>{isImportant ? "Remove from important" : "Flag as important"}</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="iconXs"
+                  onClick={() => {}}
+                >
+                  <ShieldAlert className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Mark as spam</p>
+              </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="iconXs"
+                  onClick={onToggleSidebar}
+                >
+                  {isSidebarCollapsed ? (
+                    <PanelRightOpen className="h-4 w-4" />
+                  ) : (
+                    <PanelRightClose className="h-4 w-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>{isSidebarCollapsed ? "Open contact details" : "Collapse contact details"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       </div>
 

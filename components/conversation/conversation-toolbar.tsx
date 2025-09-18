@@ -112,15 +112,14 @@ export function Toolbar({
         </div>
 
         {/* Right side controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {/* Filter Button */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="iconSm"
                 onClick={onFilterClick}
-                className="h-8 w-8 p-0 hover:bg-slate-100"
               >
                 <ListFilterPlus className="h-4 w-4" />
               </Button>

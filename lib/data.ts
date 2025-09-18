@@ -50,6 +50,7 @@ export interface Conversation {
   unreadCount: number;
   messages: Message[];
   systemMessages: SystemMessage[];
+  isImportant?: boolean;
 }
 
 // All users data
@@ -738,3 +739,41 @@ export function updateUser(userId: string, updates: Partial<User>): boolean {
   
   return true;
 }
+
+// Simple state management for important conversations
+let importantConversations = new Set<string>();
+let listeners: Set<() => void> = new Set();
+
+export function toggleConversationImportant(conversationId: string): boolean {
+  if (importantConversations.has(conversationId)) {
+    importantConversations.delete(conversationId);
+  } else {
+    importantConversations.add(conversationId);
+  }
+  // Notify all listeners
+  listeners.forEach(listener => listener());
+  return true;
+}
+
+export function setConversationsImportant(conversationIds: string[], isImportant: boolean): boolean {
+  conversationIds.forEach(id => {
+    if (isImportant) {
+      importantConversations.add(id);
+    } else {
+      importantConversations.delete(id);
+    }
+  });
+  // Notify all listeners
+  listeners.forEach(listener => listener());
+  return true;
+}
+
+export function isConversationImportant(conversationId: string): boolean {
+  return importantConversations.has(conversationId);
+}
+
+export function subscribeToImportantChanges(callback: () => void): () => void {
+  listeners.add(callback);
+  return () => listeners.delete(callback);
+}
+

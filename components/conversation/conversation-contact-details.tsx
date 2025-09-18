@@ -239,13 +239,14 @@ export function ContactDetails({
         <h2 className="text-md font-semibold text-foreground">Contact details</h2>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="iconSm">
+            <Button variant="ghost" size="iconXs">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem>View contact</DropdownMenuItem>
             <DropdownMenuItem>View all conversations</DropdownMenuItem>
-            <DropdownMenuItem>Download conversations</DropdownMenuItem>
+            <DropdownMenuItem>Download contact</DropdownMenuItem>
             <DropdownMenuItem>Merge contact</DropdownMenuItem>
             <DropdownMenuItem className="text-red-700 !hover:text-red-700 !hover:bg-red-50">Delete contact</DropdownMenuItem>
           </DropdownMenuContent>

@@ -146,7 +146,7 @@
   }
   
   .bot-avatar-pulse {
-    animation: bot-pulse 2s ease-out 2;
+    animation: bot-pulse 2s ease-out 3;
   }
   
   /* Verification badge change animation */
