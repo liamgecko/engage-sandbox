@@ -7,87 +7,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
-import { MoreVertical, CheckCheck, X } from "lucide-react";
+import { MoreVertical } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getUserById, updateUser } from "@/lib/data";
+import { ContactDetailsDetails } from "./contact-details/contact-details-details";
+import { ContactDetailsActivity } from "./contact-details/contact-details-activity";
+import { ContactDetailsSentiment } from "./contact-details/contact-details-sentiment";
+import { ContactDetailsLabels } from "./contact-details/contact-details-labels";
+import { ContactDetailsNotes } from "./contact-details/contact-details-notes";
+import { ContactDetailsForms } from "./contact-details/contact-details-forms";
+import { ContactDetailsEvents } from "./contact-details/contact-details-events";
+import { ContactDetailsCampaigns } from "./contact-details/contact-details-campaigns";
+import { ContactDetailsSystem } from "./contact-details/contact-details-system";
 
-// Editable field component moved outside to prevent recreation
-const EditableField = ({ 
-  field, 
-  value, 
-  label,
-  onEditStart,
-  onEditSave,
-  onEditCancel,
-  editingField,
-  editValue,
-  setEditValue
-}: { 
-  field: string; 
-  value: string; 
-  label: string;
-  onEditStart: (field: string, value: string) => void;
-  onEditSave: () => void;
-  onEditCancel: () => void;
-  editingField: string | null;
-  editValue: string;
-  setEditValue: (value: string) => void;
-}) => {
-  const isEditing = editingField === field;
-  const isPlaceholder = value?.startsWith("Add ") || false;
-  
-  return (
-    <>
-      <span className="text-muted-foreground">{label}:</span>
-      <Popover open={isEditing} onOpenChange={(open) => !open && onEditCancel()}>
-        <PopoverTrigger asChild>
-          <Button 
-            variant="ghost" 
-            className={`h-auto py-0.5 px-1 hover:bg-slate-100 justify-start font-normal text-[13px] ${
-              isPlaceholder ? "text-muted-foreground" : "text-foreground"
-            }`}
-            onClick={() => onEditStart(field, value || '')}
-          >
-            {value || ''}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-80 p-4" align="end">
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm font-medium text-foreground">{label}</label>
-              <Input
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                className="mt-1 text-foreground"
-                autoFocus
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={onEditCancel}
-              >
-                <X className="h-3 w-3 mr-1" />
-                Cancel
-              </Button>
-              <Button 
-                size="sm" 
-                onClick={onEditSave}
-              >
-                <CheckCheck className="h-3 w-3 mr-1" />
-                Save
-              </Button>
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
-    </>
-  );
-};
 
 interface ContactDetailsProps {
   contactId?: string;
@@ -135,29 +69,36 @@ export function ContactDetails({
       
       // Trigger animation only when email or phone is updated (verification fields)
       if (editingField === 'email' || editingField === 'phone') {
-        // Determine animation type based on NEW verification status after update
+        // Check the PREVIOUS verification status before the update
+        const wasVerified = contactData.verified;
+        
+        // Determine NEW verification status after update
         // Contact is verified if they have either email OR phone (non-empty)
         const hasEmail = editingField === 'email' ? Boolean(editValue && editValue.trim() !== '') : Boolean(contactData.email && contactData.email.trim() !== '');
         const hasPhone = editingField === 'phone' ? Boolean(editValue && editValue.trim() !== '') : Boolean(contactData.phone && contactData.phone.trim() !== '');
         const newVerifiedStatus = hasEmail || hasPhone;
-        const newAnimationType = newVerifiedStatus ? 'verified' : 'unverified';
-        setAnimationType(newAnimationType);
-        setIsAnimating(true);
         
-        // Play verification sound when contact becomes verified
-        if (newVerifiedStatus) {
-          const audio = new Audio('/verified.mp3');
-          audio.volume = 0.3; // Reduce volume to 30%
-          audio.play().catch(error => {
-            console.log('Could not play verification sound:', error);
-          });
+        // Only trigger animation if verification status actually changed
+        if (wasVerified !== newVerifiedStatus) {
+          const newAnimationType = newVerifiedStatus ? 'verified' : 'unverified';
+          setAnimationType(newAnimationType);
+          setIsAnimating(true);
+          
+          // Play verification sound when contact becomes verified
+          if (newVerifiedStatus) {
+            const audio = new Audio('/verified.mp3');
+            audio.volume = 0.3; // Reduce volume to 30%
+            audio.play().catch(error => {
+              console.log('Could not play verification sound:', error);
+            });
+          }
+          
+          setTimeout(() => {
+            setIsAnimating(false);
+            setAnimationType(null);
+          }, 600); // Animation duration
+          // Don't clear timeout on cleanup since we want the animation to complete
         }
-        
-        setTimeout(() => {
-          setIsAnimating(false);
-          setAnimationType(null);
-        }, 600); // Animation duration
-        // Don't clear timeout on cleanup since we want the animation to complete
       }
       
       // Trigger a re-render to show updated data
@@ -175,7 +116,44 @@ export function ContactDetails({
     setEditValue("");
   }, []);
 
-  const accordionItems = [
+  // Function to calculate badge counts based on actual data
+  const getBadgeCount = (sectionId: string): number | null => {
+    if (!contactData) return null;
+    
+    switch (sectionId) {
+      case "labels":
+        // For now, return 0 since tags aren't implemented yet
+        // This can be updated when tags functionality is added
+        return 0;
+      case "notes":
+        // For now, return 0 since notes aren't implemented yet
+        // This can be updated when notes functionality is added
+        return 0;
+      case "activity":
+        // This can be updated when activity functionality is added
+        return 0;
+      case "conversation-analysis":
+        // This can be updated when conversation analysis is added
+        return 0;
+      case "forms":
+        // This can be updated when forms functionality is added
+        return 0;
+      case "events":
+        // This can be updated when events functionality is added
+        return 0;
+      case "campaigns":
+        // This can be updated when campaigns functionality is added
+        return 0;
+      case "system-information":
+        // This can be updated when system information is added
+        return 0;
+      default:
+        return null;
+    }
+  };
+
+  // Define all possible accordion items
+  const allAccordionItems = [
     { 
       id: "contact-details", 
       title: "Contact details", 
@@ -186,51 +164,58 @@ export function ContactDetails({
       id: "activity", 
       title: "Activity", 
       isExpanded: false,
-      badge: null 
+      badge: getBadgeCount("activity") ? { count: getBadgeCount("activity")! } : null
     },
     { 
       id: "conversation-analysis", 
       title: "Conversation analysis", 
       isExpanded: false,
-      badge: null 
+      badge: getBadgeCount("conversation-analysis") ? { count: getBadgeCount("conversation-analysis")! } : null
     },
     { 
-      id: "tags", 
-      title: "Tags", 
+      id: "labels", 
+      title: "Labels", 
       isExpanded: false,
-      badge: { count: 4 }
+      badge: getBadgeCount("labels") ? { count: getBadgeCount("labels")! } : null
     },
     { 
       id: "notes", 
       title: "Notes", 
       isExpanded: false,
-      badge: { count: 1 }
+      badge: getBadgeCount("notes") ? { count: getBadgeCount("notes")! } : null
     },
     { 
       id: "forms", 
       title: "Forms", 
       isExpanded: false,
-      badge: null 
+      badge: getBadgeCount("forms") ? { count: getBadgeCount("forms")! } : null
     },
     { 
       id: "events", 
       title: "Events", 
       isExpanded: false,
-      badge: null 
+      badge: getBadgeCount("events") ? { count: getBadgeCount("events")! } : null
     },
     { 
       id: "campaigns", 
       title: "Campaigns", 
       isExpanded: false,
-      badge: null 
+      badge: getBadgeCount("campaigns") ? { count: getBadgeCount("campaigns")! } : null
     },
     { 
       id: "system-information", 
       title: "System information", 
       isExpanded: false,
-      badge: null 
+      badge: getBadgeCount("system-information") ? { count: getBadgeCount("system-information")! } : null
     },
   ];
+
+  // Filter accordion items based on verification status
+  const accordionItems = contactData?.verified 
+    ? allAccordionItems // Show all items for verified contacts
+    : allAccordionItems.filter(item => 
+        ["contact-details", "activity", "conversation-analysis", "labels", "notes", "system-information"].includes(item.id)
+      ); // Show only specified items for unverified contacts
 
   return (
     <div className="h-full bg-white flex flex-col">
@@ -291,8 +276,16 @@ export function ContactDetails({
               </Tooltip>
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col">
                 <h3 className="text-md font-medium text-foreground">{displayName}</h3>
+                {contactData?.verified && (
+                  <Link 
+                    href="/contacts" 
+                    className="text-[13px] text-muted-foreground hover:underline -mt-[4px]"
+                  >
+                    View contact
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -321,75 +314,40 @@ export function ContactDetails({
                 </div>
               </AccordionTrigger>
               <AccordionContent className="px-4 pb-3">
-                {item.id === "contact-details" ? (
-                  contactData ? (
-                    <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-[13px]">
-                      <EditableField 
-                        field="name" 
-                        value={contactData.name || "Add name"} 
-                        label="Name"
-                        onEditStart={handleEditStart}
-                        onEditSave={handleEditSave}
-                        onEditCancel={handleEditCancel}
-                        editingField={editingField}
-                        editValue={editValue}
-                        setEditValue={setEditValue}
-                      />
-                      <EditableField 
-                        field="email" 
-                        value={contactData.email || "Add email"} 
-                        label="Email"
-                        onEditStart={handleEditStart}
-                        onEditSave={handleEditSave}
-                        onEditCancel={handleEditCancel}
-                        editingField={editingField}
-                        editValue={editValue}
-                        setEditValue={setEditValue}
-                      />
-                      <EditableField 
-                        field="phone" 
-                        value={contactData.phone || "Add phone"} 
-                        label="Phone"
-                        onEditStart={handleEditStart}
-                        onEditSave={handleEditSave}
-                        onEditCancel={handleEditCancel}
-                        editingField={editingField}
-                        editValue={editValue}
-                        setEditValue={setEditValue}
-                      />
-                      <EditableField 
-                        field="language" 
-                        value={contactData.language || "Add language"} 
-                        label="Language"
-                        onEditStart={handleEditStart}
-                        onEditSave={handleEditSave}
-                        onEditCancel={handleEditCancel}
-                        editingField={editingField}
-                        editValue={editValue}
-                        setEditValue={setEditValue}
-                      />
-                      <EditableField 
-                        field="lastSeen" 
-                        value={contactData.lastSeen || "Add last seen"} 
-                        label="Last seen"
-                        onEditStart={handleEditStart}
-                        onEditSave={handleEditSave}
-                        onEditCancel={handleEditCancel}
-                        editingField={editingField}
-                        editValue={editValue}
-                        setEditValue={setEditValue}
-                      />
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">
-                      <p>No contact details available.</p>
-                    </div>
-                  )
-                ) : (
-                  <div className="text-sm text-muted-foreground">
-                    {/* Content will be added later */}
-                    <p>Content for {item.title} will be added here.</p>
-                  </div>
+                {item.id === "contact-details" && (
+                  <ContactDetailsDetails
+                    contactData={contactData || null}
+                    onEditStart={handleEditStart}
+                    onEditSave={handleEditSave}
+                    onEditCancel={handleEditCancel}
+                    editingField={editingField}
+                    editValue={editValue}
+                    setEditValue={setEditValue}
+                  />
+                )}
+                {item.id === "activity" && (
+                  <ContactDetailsActivity />
+                )}
+                {item.id === "conversation-analysis" && (
+                  <ContactDetailsSentiment />
+                )}
+                {item.id === "labels" && (
+                  <ContactDetailsLabels />
+                )}
+                {item.id === "notes" && (
+                  <ContactDetailsNotes />
+                )}
+                {item.id === "forms" && (
+                  <ContactDetailsForms contactData={contactData} />
+                )}
+                {item.id === "events" && (
+                  <ContactDetailsEvents contactData={contactData} />
+                )}
+                {item.id === "campaigns" && (
+                  <ContactDetailsCampaigns contactData={contactData} />
+                )}
+                {item.id === "system-information" && (
+                  <ContactDetailsSystem />
                 )}
               </AccordionContent>
             </AccordionItem>
