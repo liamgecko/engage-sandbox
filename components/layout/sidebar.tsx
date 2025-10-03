@@ -18,7 +18,9 @@ import {
   Radio,
   Bot,
   FileCode,
-  PhoneCall
+  PhoneCall,
+  Inbox,
+  Mail
 } from 'lucide-react'
 import {
   Tooltip,
@@ -31,8 +33,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 const navigation = [
   { name: 'Overview', href: '/overview', icon: Home },
   { name: 'Contacts', href: '/contacts', icon: Users },
-  { name: 'Responses', href: '/responses', icon: MessageSquare },
-  { name: 'Messages', href: '/messages', icon: MessagesSquare },
+  { name: 'Responses', href: '/responses', icon: Inbox },
+  { name: 'Messages', href: '/messages', icon: Mail },
   { name: 'Calls', href: '/calls', icon: Phone },
   { name: 'Conversations', href: '/conversations', icon: MessagesSquare },
   { name: 'Organisations', href: '/organisations', icon: Building2, afterSeparator: true },

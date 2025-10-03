@@ -4,7 +4,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { CircleCheckBig } from "lucide-react"
+import { CircleCheckBig, Flag } from "lucide-react"
+import { toggleConversationImportant, isConversationImportant } from "@/lib/data"
+import { useState, useEffect } from "react"
 
 interface ChatHeadProps {
   id: string
@@ -37,6 +39,17 @@ export function ChatHead({
   isSelected = false,
   onSelectionChange
 }: ChatHeadProps) {
+  const [isImportant, setIsImportant] = useState(false)
+
+  // Initialize important state
+  useEffect(() => {
+    setIsImportant(isConversationImportant(id))
+  }, [id])
+
+  const handleFlagImportant = () => {
+    toggleConversationImportant(id)
+    setIsImportant(!isImportant)
+  }
   return (
     <li 
       className={`group relative flex justify-between items-center px-2 py-3 rounded cursor-pointer transition-colors duration-200 ${
@@ -81,10 +94,31 @@ export function ChatHead({
       <div className="text-xs font-medium text-muted-foreground">
         {timestamp}
       </div>
-      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="outline" size="iconSm" onClick={() => onClose(id)}>
+            <Button 
+              variant="outline" 
+              size="iconXs" 
+              onClick={(e) => {
+                e.stopPropagation()
+                handleFlagImportant()
+              }}
+              className={isImportant ? "bg-orange-50 border-orange-200 text-orange-600 hover:text-orange-500 hover:bg-orange-50" : ""}
+            >
+              <Flag className={`h-4 w-4 ${isImportant ? "fill-current" : ""}`} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <p>{isImportant ? "Remove from important" : "Flag as important"}</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="iconXs" onClick={(e) => {
+              e.stopPropagation()
+              onClose(id)
+            }}>
               <CircleCheckBig className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
