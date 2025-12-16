@@ -197,6 +197,41 @@ export default function WorkflowV2Page() {
     }
   }
 
+  const handleAddNewWorkflow = () => {
+    const newId = Math.max(...workflows.map((w) => w.id), 0) + 1
+    const newWorkflow = {
+      id: newId,
+      name: '',
+      trigger: 'Before conversation starts',
+      statusChecked: false,
+      author: { name: 'Liam Young', initials: 'LY', avatar: '/mike.jpg' },
+    }
+    
+    setWorkflows((prev) => [newWorkflow, ...prev])
+    
+    // Initialize conditions for the new workflow
+    setWorkflowConditions((prev) => ({
+      ...prev,
+      [newId]: [
+        {
+          logic: 'IF',
+          conditionType: null,
+          operator: null,
+          value: null,
+        },
+      ],
+    }))
+    
+    // Initialize recurring workflow state
+    setRecurringWorkflows((prev) => ({
+      ...prev,
+      [newId]: false,
+    }))
+    
+    // Automatically open the new workflow row
+    setOpenRows((prev) => [...prev, newId.toString()])
+  }
+
   const activeFilters = [
     selectedTrigger.length > 0 && {
       label: 'Trigger type',
@@ -269,7 +304,7 @@ export default function WorkflowV2Page() {
         heading="Chat workflows"
         actions={
           <>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleAddNewWorkflow}>
               <Plus className="size-4" />
               Add new workflow
             </Button>
