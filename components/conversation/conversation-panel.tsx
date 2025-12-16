@@ -26,6 +26,7 @@ import {
   getAllAgents,
   getAgentById
 } from "@/lib/agent-data";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 
 interface ConversationPanelProps {
   conversationId?: string;
@@ -44,6 +45,7 @@ export function ConversationPanel({
   const [isReplyBoxMaximized, setIsReplyBoxMaximized] = useState(false);
   const [showBotPulse, setShowBotPulse] = useState(false);
   const [isImportant, setIsImportant] = useState(false);
+  const [flagAssignees, setFlagAssignees] = useState<string[]>([]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Start pulse animation after a short delay, then stop after completion
@@ -157,11 +159,11 @@ export function ConversationPanel({
     setAssignedAgents(newAssignments);
   };
 
-  const handleFlagImportant = () => {
-    if (conversationId) {
-      toggleConversationImportant(conversationId);
-    }
-  };
+  // const handleFlagImportant = () => {
+  //   if (conversationId) {
+  //     toggleConversationImportant(conversationId);
+  //   }
+  // };
 
 
   return (
@@ -235,6 +237,7 @@ export function ConversationPanel({
               </TooltipContent>
             </Tooltip>
 
+            {/* Original flag button kept for reference
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -250,6 +253,84 @@ export function ConversationPanel({
                 <p>{isImportant ? "Remove from important" : "Flag as important"}</p>
               </TooltipContent>
             </Tooltip>
+            */}
+
+            {/* New flag behavior: if already important, remove immediately; otherwise open modal */}
+            {isImportant ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="iconXs"
+                    onClick={() => {
+                      if (conversationId) toggleConversationImportant(conversationId)
+                    }}
+                    className="text-orange-600 bg-orange-50 hover:text-orange-500 hover:bg-orange-50"
+                  >
+                    <Flag className="h-4 w-4 fill-current" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>Remove from important</p>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Dialog>
+                <Tooltip>
+                  <DialogTrigger asChild>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="iconXs"
+                        className=""
+                      >
+                        <Flag className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                  </DialogTrigger>
+                  <TooltipContent side="bottom">
+                    <p>Flag as important</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Flag as important</DialogTitle>
+                    <DialogDescription>Choose who this conversation should be flagged for.</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Assign to</label>
+                      <MultiSelectCombobox
+                        options={agentOptions}
+                        selected={flagAssignees}
+                        onChange={setFlagAssignees}
+                        placeholder="Search agents and teams..."
+                        maxDisplay={2}
+                        triggerVariant="outline"
+                        triggerSize="default"
+                        triggerClassName="w-full"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button variant="outline">Cancel</Button>
+                    </DialogClose>
+                    <DialogClose asChild>
+                      <Button
+                        onClick={() => {
+                          if (conversationId) toggleConversationImportant(conversationId)
+                        }}
+                        disabled={flagAssignees.length === 0}
+                      >
+                        Flag conversation
+                      </Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
 
             <Tooltip>
               <TooltipTrigger asChild>

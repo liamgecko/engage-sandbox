@@ -19,7 +19,7 @@ function AccordionItem({
   return (
     <AccordionPrimitive.Item
       data-slot="accordion-item"
-      className={cn("border-b last:border-b-0", className)}
+      className={cn("border-b", className)}
       {...props}
     />
   )
@@ -28,8 +28,24 @@ function AccordionItem({
 function AccordionTrigger({
   className,
   children,
+  asChild,
   ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Trigger>) {
+}: React.ComponentProps<typeof AccordionPrimitive.Trigger> & { asChild?: boolean }) {
+  if (asChild) {
+    return (
+      <AccordionPrimitive.Header className="flex">
+        <AccordionPrimitive.Trigger
+          asChild
+          data-slot="accordion-trigger"
+          className={className}
+          {...props}
+        >
+          {children}
+        </AccordionPrimitive.Trigger>
+      </AccordionPrimitive.Header>
+    )
+  }
+
   return (
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger

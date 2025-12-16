@@ -36,6 +36,10 @@ interface MultiSelectComboboxProps {
   placeholder?: string
   className?: string
   maxDisplay?: number
+  // Optional styling controls for the trigger so it can look like an input
+  triggerVariant?: "ghost" | "outline"
+  triggerSize?: "sm" | "default"
+  triggerClassName?: string
 }
 
 export function MultiSelectCombobox({
@@ -45,6 +49,9 @@ export function MultiSelectCombobox({
   placeholder = "Select items...",
   className,
   maxDisplay = 3,
+  triggerVariant = "ghost",
+  triggerSize = "sm",
+  triggerClassName,
 }: MultiSelectComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -65,11 +72,16 @@ export function MultiSelectCombobox({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant="ghost"
-            size="sm"
+            variant={triggerVariant}
+            size={triggerSize}
             role="combobox"
             aria-expanded={open}
-            className="justify-between !px-1.5 hover:bg-transparent"
+            className={cn(
+              "justify-between",
+              triggerVariant === "ghost" ? "!px-1.5 hover:bg-transparent" : "px-3 h-9 border bg-background text-foreground",
+              "w-full",
+              triggerClassName
+            )}
           >
             <div className="flex items-center gap-1">
               {selected.length === 0 ? (
